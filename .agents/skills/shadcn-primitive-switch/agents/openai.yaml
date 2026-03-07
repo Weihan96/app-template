@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shadcn Primitive Switch"
+  short_description: "Switch shadcn primitives with safety and visual checks"
+  default_prompt: "Use $shadcn-primitive-switch to audit components/ui customization, report current primitive and per-component migration action directly to the user, compare UI before/after, and switch primitives only after confirmation."

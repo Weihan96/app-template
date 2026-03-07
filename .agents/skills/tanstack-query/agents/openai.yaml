@@ -1,0 +1,7 @@
+interface:
+  display_name: "TanStack Query Best Practices"
+  short_description: "Guide TanStack Query data-fetching and cache patterns"
+  icon_small: "./assets/tanstack-query-small.svg"
+  icon_large: "./assets/tanstack-query-large.png"
+  brand_color: "#fb2c36"
+  default_prompt: "Use $tanstack-query-best-practices to review and improve my TanStack Query code for query keys, caching, mutations, and SSR hydration."

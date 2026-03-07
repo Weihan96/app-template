@@ -1,0 +1,28 @@
+# dependencies
+/node_modules
+
+# build outputs
+/.next/
+/out/
+
+# test outputs
+/coverage/
+/playwright-report/
+/test-results/
+
+# env files
+.env*
+!.env.example
+
+# local temp
+/.tmp/
+
+# deployment
+/.vercel/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# platform
+.DS_Store

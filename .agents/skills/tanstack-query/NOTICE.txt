@@ -1,0 +1,34 @@
+NOTICE
+======
+
+This file tracks current known gaps for this skill.
+
+Unimplemented Rules Removed from SKILL Index
+--------------------------------------------
+- cache-defaults
+- err-fallback-data
+- err-retry-config
+- inf-loading-guards
+- inf-max-pages
+- mut-error-handling
+- mut-loading-states
+- mut-rollback-context
+- perf-notify-change-props
+- perf-placeholder-data
+- perf-structural-sharing
+- pf-ensure-query-data
+- pf-route-prefetch
+- pf-stale-time-config
+- ssr-client-per-request
+- ssr-hydration-boundary
+- ssr-stale-time-server
+
+Rule Files Missing Good Example Section
+---------------------------------------
+- cache-placeholder-vs-initial.md
+- inf-page-params.md
+- mut-optimistic-updates.md
+- network-mode.md
+- persist-queries.md
+- query-cancellation.md
+- ssr-dehydration.md

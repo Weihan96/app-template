@@ -33,8 +33,9 @@
 - `components`: reusable UI components and local UI primitives.
 - `lib`: shared business logic, utility helpers, and integration wrappers.
 - `prisma`: schema, migrations, and database-related configuration.
-- `tests`: automated test suites including Playwright and skill-related tests.
+- `tests`: automated test suites including Playwright and smoke tests.
 - `docs`: project documentation including testing criteria.
+- `skills-wip`: source directory for skill development.
 - `.agents/skills`: Codex-discoverable project skills.
 
 ## Delivery contract for AI output
@@ -49,7 +50,6 @@
 
 - `bun run lint`
 - `bun run typecheck`
-- `bun run test:skills`
 - `bun run test:e2e`
 
 ## Test ownership
@@ -60,10 +60,8 @@
 
 ## Skills
 
-- Discoverable project skills live under `.agents/skills/`.
-- Do not maintain discoverable skills outside `.agents/skills/`.
 - Skill inventory is auto-injected by Codex at runtime. Do not maintain a static `Available skills` list in this file.
-- Add or remove skills by changing files under `.agents/skills/`.
+- See `/docs/about-skills.md`.
 
 ## Coding rules
 
@@ -75,7 +73,6 @@
 - When an equivalent registry item exists, do not keep or introduce hand-rolled "shadcn-style" look-alike components.
 - Prefer composition and extension of registry components over reimplementing the same primitive behavior.
 - If no official/registry component fits a requirement, document that constraint in the PR/change summary before introducing custom UI.
-- When adding reusable workflows, create or update a matching skill under `.agents/skills/`.
 
 ## Definition of done
 

@@ -9,9 +9,10 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:skills": "node --test tests/skills/*.test.mjs",
+    "skills:validate": "bun commands/skills/validate-skills.mjs",
+    "skills:install": "bun commands/skills/install-skills.mjs",
     "test:e2e": "playwright test",
-    "check": "bun run lint && bun run typecheck && bun run test:skills && bun run test:e2e",
+    "check": "bun run lint && bun run typecheck && bun run test:e2e",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },

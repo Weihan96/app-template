@@ -11,4 +11,5 @@
 
 - `bun run lint`
 - `bun run typecheck`
-- `bun run test:skills`
+- `bun run skills:validate`
+- `bun run skills:install -- shadcn-mcp`

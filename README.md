@@ -14,22 +14,28 @@ Opinionated starter for AI-assisted web development with:
 ## Getting started
 
 ```bash
-bash .agents/skills/first-run-setup/scripts/bootstrap-dev-env.sh
 bun install
 cp .env.example .env
 bun run prisma:generate
 bun run dev
 ```
 
-On a new machine, use `bash .agents/skills/first-run-setup/scripts/bootstrap-dev-env.sh --apply` if you want the repository to install supported prerequisites for you.
-
 ## Required checks
 
 ```bash
 bun run lint
 bun run typecheck
-bun run test:skills
 bun run test:e2e
 ```
 
-See `AGENTS.md` and `docs/testing-criteria.md` for AI execution constraints.
+## Skill development workflow
+
+Skills are developed in `skills-wip/` and installed into `.agents/skills`.
+
+```bash
+bun run skills:validate
+git diff
+bun run skills:install -- <skill|all>
+```
+
+See `AGENTS.md` and `docs/testing-criteria.md` for execution constraints.

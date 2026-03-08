@@ -1,7 +1,6 @@
 ---
 name: "<skill-name>"
 description: "When to use this skill and what outcome it provides."
-# compatibility: "Add this field when Step 0 checks external dependencies."
 ---
 
 # <Skill Title>
@@ -39,5 +38,5 @@ command -v bun >/dev/null 2>&1 && command -v bunx >/dev/null 2>&1
 
 ## Install Notes
 
-- Mention any caveats for `bun run skills:install -- <skill|all>`.
+- Mention any caveats for `bun run skills:publish -- <skill|all>`.
 - Note conflict handling expectations before install.

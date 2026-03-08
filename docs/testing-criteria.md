@@ -22,7 +22,9 @@
 ## Skill engineering loop (non-CI)
 
 1. Build or update skill sources under `skills-wip/`.
-2. Run `bun run skills:validate`.
-3. Review changes with `git diff`.
-4. Run `bun run skills:install -- <skill|all>`.
-5. Start a fresh Codex session and verify the installed skill is discoverable and usable.
+2. Run `bun run skills:validate --profile auto --target <skill|all>`.
+3. Run `bun run skills:deps --target <skill|all>`, `bun run skills:smoke -- <skill|all>`, and `bun run skills:tidyup`.
+4. Review changes with `git diff`.
+5. Run `bun run skills:publish -- <skill|all>`.
+6. Run `bun run skills:verify-runtime --target <skill|all>`.
+7. Start a fresh Codex session and verify the published skill is discoverable and usable.

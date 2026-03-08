@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "skill-creator",
+      "kind": "vendor",
+      "state": "Curating",
+      "validationProfile": "core",
+      "publishMode": "copy"
+    },
+    {
+      "name": "curate-skills",
+      "kind": "local",
+      "state": "Published",
+      "validationProfile": "auto",
+      "publishMode": "copy"
+    }
+  ]
+}

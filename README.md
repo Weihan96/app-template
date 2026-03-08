@@ -33,9 +33,12 @@ bun run test:e2e
 Skills are developed in `skills-wip/` and installed into `.agents/skills`.
 
 ```bash
-bun run skills:validate
+bun run skills:validate --profile auto
+bun run skills:deps --target <skill|all>
+bun run skills:smoke -- <skill|all>
+bun run skills:tidyup
 git diff
-bun run skills:install -- <skill|all>
+bun run skills:publish -- <skill|all>
 ```
 
 See `AGENTS.md` and `docs/testing-criteria.md` for execution constraints.

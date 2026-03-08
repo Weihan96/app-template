@@ -2,191 +2,172 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import {
+  getSkillEntry,
+  hasHeading,
+  loadManifest,
+  parseFrontmatter,
+  resolveArgTarget,
+  resolveTargets,
+  skillDir,
+  validateCoreFrontmatter,
+} from "./lib.mjs";
 
-const rootDir = process.cwd();
-const skillsWipDir = path.join(rootDir, "skills-wip");
-
-const requiredSections = [
+const projectRequiredSections = [
   "Acceptance Criteria",
   "Verification Checklist",
   "Known Couplings",
   "Install Notes",
 ];
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function parseFrontmatter(raw) {
-  const match = raw.match(/^---\n([\s\S]*?)\n---\n?/);
-  if (!match) {
-    return { frontmatter: null, body: raw };
-  }
-
-  const frontmatter = {};
-
-  for (const line of match[1].split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) {
-      continue;
-    }
-
-    const separatorIndex = trimmed.indexOf(":");
-    if (separatorIndex === -1) {
-      continue;
-    }
-
-    const key = trimmed.slice(0, separatorIndex).trim();
-    let value = trimmed.slice(separatorIndex + 1).trim();
-
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-
-    frontmatter[key] = value;
-  }
-
-  return { frontmatter, body: raw.slice(match[0].length) };
-}
-
-function extractSection(body, heading) {
-  const sectionPattern = new RegExp(
-    `^##\\s+${escapeRegExp(heading)}\\s*$([\\s\\S]*?)(?=^##\\s+|\\Z)`,
-    "im",
-  );
-  const match = body.match(sectionPattern);
-  return match ? match[1] : "";
-}
-
-function hasHeading(body, heading) {
-  const headingPattern = new RegExp(`^##\\s+${escapeRegExp(heading)}\\s*$`, "im");
-  return headingPattern.test(body);
-}
-
 function hasStep0BeforeWorkflow(body) {
   const step0Index = body.search(/^##\s+Step 0\b/im);
   const workflowIndex = body.search(/^##\s+Workflow\b/im);
-
   if (workflowIndex === -1) {
-    return true;
+    return step0Index !== -1;
   }
-
   return step0Index !== -1 && step0Index < workflowIndex;
 }
 
-function needsCompatibilityField(step0Section) {
-  return /(command -v|install|bunx|brew|apt|choco|playwright|prisma)/i.test(
-    step0Section,
-  );
-}
+function parseOptions(argv) {
+  let profile = "auto";
+  let strict = false;
 
-async function getSkillDirectories() {
-  try {
-    const entries = await fs.readdir(skillsWipDir, { withFileTypes: true });
-    return entries
-      .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
-      .map((entry) => entry.name)
-      .sort((left, right) => left.localeCompare(right));
-  } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return [];
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === "--strict") {
+      strict = true;
+      continue;
     }
-
-    throw error;
+    if (arg === "--profile" && argv[i + 1]) {
+      profile = argv[i + 1];
+      i += 1;
+      continue;
+    }
   }
+
+  if (!["auto", "core", "project"].includes(profile)) {
+    throw new Error(`Unsupported --profile value: ${profile}`);
+  }
+
+  return { profile, strict };
 }
 
-async function validateSkill(skillName) {
-  const errors = [];
-  const skillDir = path.join(skillsWipDir, skillName);
-  const skillFile = path.join(skillDir, "SKILL.md");
+function shouldRunProjectChecks(profile) {
+  return profile === "auto" || profile === "project";
+}
 
-  let rawContent;
+function projectCheckSeverity(profile, strict, skillKind) {
+  if (profile === "project") {
+    return "error";
+  }
+  if (profile === "auto") {
+    if (skillKind === "vendor") {
+      return "warn";
+    }
+    return strict ? "error" : "warn";
+  }
+  return "skip";
+}
 
+function formatIssue(level, skillName, message) {
+  return `[${level.toUpperCase()}] ${skillName}: ${message}`;
+}
+
+async function validateOneSkill({ skillName, kind, profile, strict }) {
+  const issues = [];
+  const skillPath = skillDir(skillName);
+  const skillFilePath = path.join(skillPath, "SKILL.md");
+
+  let raw;
   try {
-    rawContent = await fs.readFile(skillFile, "utf8");
+    raw = await fs.readFile(skillFilePath, "utf8");
   } catch {
-    errors.push("Missing required file: SKILL.md");
-    return errors;
+    issues.push({ level: "error", message: "Missing required file SKILL.md" });
+    return issues;
   }
 
-  const { frontmatter, body } = parseFrontmatter(rawContent);
+  const parsed = parseFrontmatter(raw);
 
-  if (!frontmatter) {
-    errors.push("Missing YAML frontmatter block at top of SKILL.md");
-  } else {
-    if (!frontmatter.name) {
-      errors.push("Frontmatter field `name` is required");
-    }
-
-    if (!frontmatter.description) {
-      errors.push("Frontmatter field `description` is required");
-    }
+  for (const message of validateCoreFrontmatter(parsed)) {
+    issues.push({ level: "error", message });
   }
 
-  for (const section of requiredSections) {
-    if (!hasHeading(body, section)) {
-      errors.push(`Missing required section heading: ## ${section}`);
-    }
+  if (!shouldRunProjectChecks(profile)) {
+    return issues;
   }
 
-  if (!hasStep0BeforeWorkflow(body)) {
-    errors.push("`## Step 0` must exist and appear before `## Workflow`");
+  const severity = projectCheckSeverity(profile, strict, kind);
+  if (severity === "skip") {
+    return issues;
   }
 
-  const step0Section = extractSection(body, "Step 0");
-  if (step0Section && needsCompatibilityField(step0Section)) {
-    if (!frontmatter || !frontmatter.compatibility) {
-      errors.push(
-        "Detected dependency checks/install instructions in Step 0; add frontmatter field `compatibility`",
-      );
+  for (const section of projectRequiredSections) {
+    if (!hasHeading(parsed.body, section)) {
+      issues.push({
+        level: severity,
+        message: `Missing project section: ## ${section}`,
+      });
     }
   }
 
-  return errors;
+  if (!hasStep0BeforeWorkflow(parsed.body)) {
+    issues.push({
+      level: severity,
+      message: "Project rule expects `## Step 0` before `## Workflow`",
+    });
+  }
+
+  return issues;
 }
 
 async function main() {
-  const skillDirectories = await getSkillDirectories();
+  const args = process.argv.slice(2);
+  const { profile, strict } = parseOptions(args);
 
-  if (skillDirectories.length === 0) {
-    console.log(
-      "No skills found in skills-wip/. Create skills-wip/<skill>/SKILL.md and run this command again.",
-    );
-    return;
-  }
+  const manifest = await loadManifest();
+  const targets = resolveTargets(manifest, resolveArgTarget(args));
 
-  const allErrors = [];
+  const allIssues = [];
 
-  for (const skillName of skillDirectories) {
-    const errors = await validateSkill(skillName);
-    if (errors.length > 0) {
-      allErrors.push({ skillName, errors });
+  for (const skillName of targets) {
+    const entry = getSkillEntry(manifest, skillName);
+    if (!entry) {
+      allIssues.push({ level: "error", skillName, message: "Missing manifest entry" });
+      continue;
+    }
+
+    const issues = await validateOneSkill({
+      skillName,
+      kind: entry.kind ?? "local",
+      profile,
+      strict,
+    });
+    for (const issue of issues) {
+      allIssues.push({ ...issue, skillName });
     }
   }
 
-  if (allErrors.length > 0) {
-    console.error("skills:validate found issues:");
-    for (const issue of allErrors) {
-      console.error(`- ${issue.skillName}`);
-      for (const error of issue.errors) {
-        console.error(`  - ${error}`);
-      }
+  const errors = allIssues.filter((issue) => issue.level === "error");
+  const warns = allIssues.filter((issue) => issue.level === "warn");
+
+  if (allIssues.length > 0) {
+    for (const issue of allIssues) {
+      console.log(formatIssue(issue.level, issue.skillName, issue.message));
     }
-    process.exitCode = 1;
-    return;
   }
 
   console.log(
-    `skills:validate passed (${skillDirectories.length} skill${skillDirectories.length === 1 ? "" : "s"} checked).`,
+    `skills:validate summary -> checked=${targets.length}, errors=${errors.length}, warnings=${warns.length}, profile=${profile}${strict ? ", strict=true" : ""}`,
   );
+
+  if (errors.length > 0) {
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {
-  console.error("skills:validate failed with an unexpected error.");
-  console.error(error);
+  console.error("skills:validate failed.");
+  console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });

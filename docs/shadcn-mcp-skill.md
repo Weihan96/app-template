@@ -12,4 +12,4 @@
 - `bun run lint`
 - `bun run typecheck`
 - `bun run skills:validate`
-- `bun run skills:install -- shadcn-mcp`
+- `bun run skills:publish -- shadcn-mcp`

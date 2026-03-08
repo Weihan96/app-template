@@ -13,4 +13,4 @@
 - `bun run lint`
 - `bun run typecheck`
 - `bun run skills:validate`
-- `bun run skills:install -- first-run-setup`
+- `bun run skills:publish -- first-run-setup`

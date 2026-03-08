@@ -1,0 +1,6 @@
+{
+  "commands": [
+    "bun commands/skills/validate-skills.mjs --profile core --target skill-creator",
+    "bun commands/skills/validate-skills.mjs --profile auto --target curate-skills"
+  ]
+}

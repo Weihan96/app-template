@@ -1,0 +1,4 @@
+interface:
+  display_name: "Curate Skills"
+  short_description: "Harden and publish repository skills"
+  default_prompt: "Use $curate-skills to validate, test, and publish a repository skill."

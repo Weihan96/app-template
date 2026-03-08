@@ -6,19 +6,28 @@ Do not edit `.agents/skills` directly.
 ## Lifecycle
 
 1. Create or update a skill under `skills-wip/<skill-name>/`.
-2. Run `bun run skills:validate`.
-3. Review changes with `git diff`.
-4. Install into runtime discovery directory:
+2. Run:
 
 ```bash
-bun run skills:install -- <skill|all>
+bun run skills:validate --profile auto
+bun run skills:deps --target <skill|all>
+bun run skills:smoke -- <skill|all>
+bun run skills:tidyup
+```
+
+3. Review changes with `git diff`.
+4. Publish into runtime discovery directory:
+
+```bash
+bun run skills:publish -- <skill|all>
 ```
 
 `.agents/skills` remains the Codex runtime/discovery location.
-Changes under `skills-wip/` do not take effect until installation succeeds.
+Changes under `skills-wip/` do not take effect until publish succeeds.
 
 ## Notes
 
-- Install is copy-only and never deletes extra files in `.agents/skills`.
-- If a target file already exists with different content, install aborts and prints a conflict list.
-- After resolving conflicts, run `bun run skills:install -- <skill|all>` again.
+- Skill metadata and states are tracked in `skills-wip/manifest.json`.
+- Publish is copy-only and does not delete extra files in `.agents/skills`.
+- If runtime path is protected, publish creates manual commands under `.tmp/skills/publish/`.
+- After manual publish commands, run `bun run skills:verify-runtime --target <skill|all>`.
